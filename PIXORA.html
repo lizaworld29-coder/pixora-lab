@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>PIXORA — Graphic Design Studio</title>
+<style>
+:root{--bg:#0b1220;--panel:#121d30;--border:#2b3a51;--text:#f4f7fb;--muted:#aab7ca;--accent:#00c853}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#0b1220,#101c2f);color:var(--text);font-family:system-ui,Arial,sans-serif}
+header{padding:18px 16px;border-bottom:1px solid var(--border)}.brand{font-size:25px;font-weight:900;letter-spacing:2px}.brand span{color:var(--accent)}.sub{font-size:12px;color:var(--muted)}
+main{max-width:1050px;margin:auto;padding:14px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px}
+section{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px}h2{font-size:16px;margin:0 0 12px}
+.stage{display:flex;justify-content:center;align-items:center;min-height:300px;background:#080d16;border-radius:12px;padding:10px;overflow:hidden}
+canvas{max-width:100%;max-height:65vh;height:auto;display:block;background:white}
+.controls{display:flex;flex-direction:column;gap:12px}label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}
+input[type=text],select{width:100%;padding:10px;background:#0b1423;color:white;border:1px solid var(--border);border-radius:9px}
+input[type=color]{width:100%;height:40px;padding:3px;background:#0b1423;border:1px solid var(--border);border-radius:9px}
+input[type=file]{width:100%;font-size:12px;color:var(--muted)}.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+button{padding:11px;border:0;border-radius:9px;font-weight:750;cursor:pointer}.primary{background:var(--accent);color:#06200f}.secondary{background:#19263b;color:white;border:1px solid var(--border)}
+.note,.hint{font-size:12px;line-height:1.5;color:var(--muted)}.note{background:#0b1423;border:1px solid var(--border);padding:10px;border-radius:9px}
+footer{text-align:center;padding:18px;color:var(--muted);font-size:12px}
+@media(max-width:720px){main{grid-template-columns:1fr;padding:10px}.stage{min-height:250px}}
+</style>
+</head>
+<body>
+<header><div class="brand">PIX<span>O</span>RA 🎨</div><div class="sub">Graphic Design Studio · A creative project by ZAVYX</div></header>
+<main>
+<section><h2>Your design</h2><div class="stage"><canvas id="art" width="1080" height="1080"></canvas></div><p class="hint">Add text or your own image, choose colors, then save your design as a PNG.</p></section>
+<section class="controls">
+<h2>Design tools</h2>
+<div><label for="preset">Canvas size</label><select id="preset"><option value="square">Square post (1080 × 1080)</option><option value="portrait">Portrait post (1080 × 1350)</option><option value="story">Story / Reel (1080 × 1920)</option><option value="landscape">Landscape (1600 × 900)</option><option value="shirt">T-shirt design (square)</option></select></div>
+<div><label for="words">Text</label><input id="words" type="text" maxlength="90" value="CREATE SOMETHING AMAZING"></div>
+<div class="row"><div><label for="textColor">Text color</label><input id="textColor" type="color" value="#ffffff"></div><div><label for="bgColor">Background</label><input id="bgColor" type="color" value="#17263d"></div></div>
+<div><label for="font">Font style</label><select id="font"><option value="Arial">Modern — Arial</option><option value="Georgia">Classic — Georgia</option><option value="Impact">Bold — Impact</option><option value="Trebuchet MS">Friendly — Trebuchet</option><option value="monospace">Tech — Monospace</option></select></div>
+<div><label for="imageFile">Add your image / artwork</label><input id="imageFile" type="file" accept="image/*"></div>
+<div class="row"><button class="secondary" id="clearImage">Remove image</button><button class="secondary" id="reset">Reset</button></div>
+<button class="primary" id="save">⬇ Save PNG</button>
+<div class="note">Starter web app. Check the commercial-use permissions for any fonts, images, or artwork you use.</div>
+</section>
+</main><footer>PIXORA by ZAVYX · Create Anything. Design Everything.</footer>
+<script>
+const canvas=document.getElementById('art'),ctx=canvas.getContext('2d'),$=id=>document.getElementById(id);
+let uploaded=null;const sizes={square:[1080,1080],portrait:[1080,1350],story:[1080,1920],landscape:[1600,900],shirt:[1200,1200]};
+function draw(){
+ const [w,h]=sizes[$('preset').value];canvas.width=w;canvas.height=h;
+ const shirt=$('preset').value==='shirt';ctx.clearRect(0,0,w,h);
+ if(!shirt){ctx.fillStyle=$('bgColor').value;ctx.fillRect(0,0,w,h)}
+ if(uploaded){let scale=Math.min(w*.72/uploaded.width,h*.48/uploaded.height),iw=uploaded.width*scale,ih=uploaded.height*scale;ctx.drawImage(uploaded,(w-iw)/2,h*.12,iw,ih)}
+ const t=$('words').value.trim();if(t){let fs=Math.min(w*.09,h*.1,100);ctx.font=`900 ${fs}px "${$('font').value}"`;while(ctx.measureText(t).width>w*.86&&fs>18){fs-=2;ctx.font=`900 ${fs}px "${$('font').value}"`}
+ ctx.textAlign='center';ctx.textBaseline='middle';let y=uploaded?h*.76:h*.5;ctx.lineWidth=Math.max(2,fs*.06);ctx.strokeStyle=shirt?'#111':'rgba(0,0,0,.28)';ctx.fillStyle=$('textColor').value;ctx.strokeText(t,w/2,y,w*.88);ctx.fillText(t,w/2,y,w*.88)}
+}
+['preset','words','textColor','bgColor','font'].forEach(id=>$(id).addEventListener('input',draw));
+$('imageFile').addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{let im=new Image();im.onload=()=>{uploaded=im;draw()};im.src=r.result};r.readAsDataURL(f)});
+$('clearImage').onclick=()=>{uploaded=null;$('imageFile').value='';draw()};
+$('reset').onclick=()=>{uploaded=null;$('imageFile').value='';$('words').value='CREATE SOMETHING AMAZING';$('textColor').value='#ffffff';$('bgColor').value='#17263d';$('font').value='Arial';$('preset').value='square';draw()};
+$('save').onclick=()=>{let a=document.createElement('a');a.download='PIXORA-design.png';a.href=canvas.toDataURL('image/png');a.click()};draw();
+</script></body></html>
